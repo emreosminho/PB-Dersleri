@@ -43,7 +43,10 @@
     var_dump(!$a);
 
 
-
+    /* vardump() fonksiyonu, PHP'de değişkenlerin içeriğini ve türünü görüntülemek 
+    için kullanılan bir hata ayıklama (debugging) işlevini ifade eder. Bu fonksiyon, 
+    değişkenin değerini ve türünü bir dizi veya nesne gibi karmaşık veri tiplerinde bile 
+    ayrıntılı bir şekilde görüntüler. */
 
 
 
