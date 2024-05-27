@@ -39,69 +39,170 @@ function getUser(string $username){
 
 
 
-function createBlog(string $title, string $description, string $image,string $url, int $comments=0,int $likes=0) {
-    $db = getData();
+function createBlog(string $title, string $description, string $image,string $url,int $category, int $isActive=0) {
+   include "ayar.php";
 
-    array_push($db["movies"], array(
-        "id" => count($db["movies"]) + 1,
-        "title" => $title,
-        "description" => $description,
-        "image" => $image,
-        "url" => $url,
-        "comments" => $comments,
-        "likes" => $likes,
-        "is-active" => false
-    ));
+    $query = "INSERT INTO blogs(title,description,image,url,category_id,isActive) VALUES (?,?,?,?,?,?)";
+    $result = mysqli_prepare($connection,$query);
 
-    $myfile = fopen("db.json","w");
-    fwrite($myfile, json_encode($db, JSON_PRETTY_PRINT));
-    fclose($myfile);
+    mysqli_stmt_bind_param($result, 'ssssii',$title,$description,$image,$url,$category,$isActive);
+    mysqli_stmt_execute($result);
+    mysqli_stmt_close($result);
+    mysqli_close($connection);
+
+   return $result;
 }
 
-function editBlog(int $id,string $title,string $description,string $image,string $url, bool $isActive){
-    $db = getData();
 
-    foreach($db["movies"] as &$movie){
-        if($movie["id"] == $id){
-            $movie["title"] = $title;
-            $movie["description"] = $description;
-            $movie["image"] = $image;
-            $movie["url"] = $url;
-            $movie["is-active"] = $isActive;
+function getBlogs(){
+    include "ayar.php";
 
-            $myfile = fopen("db.json","w");
-            fwrite($myfile, json_encode($db, JSON_PRETTY_PRINT));
-            fclose($myfile);
-
-            break;
-        }
-    }
+    $query = "SELECT * FROM blogs";
+    $result = mysqli_query($connection,$query);
+    mysqli_close($connection);
+    return $result;
 }
 
-function deleteBlog(int $id){
-    $db = getData();
-
-    foreach($db["movies"] as $key => $movie){
-        if($movie['id'] === $id){
-            array_splice($db["movies"],$key,1);
-            break;
-        }
-    }
-    $myfile = fopen("db.json","w");
-    fwrite($myfile, json_encode($db, JSON_PRETTY_PRINT));
-    fclose($myfile);
+function editBlog(int $id,string $title,string $description,string $image,string $url, int $isActive){
+    include "ayar.php";
+ 
+    $query = "UPDATE blogs SET title='$title',description='$description',image='$image',url='$url',isActive='$isActive' WHERE id='$id'";
+    $result = mysqli_query($connection,$query);
+    echo mysqli_error($connection);
+    return $result;
+ }
+ 
+ function clearBlogCategories(int $blogid){
+    include "ayar.php";
+ 
+    $query = "DELETE FROM blog_category WHERE blog_id=$blogid";
+    $result = mysqli_query($connection, $query);
+    echo mysqli_error($connection);
+    return $result;
 }
 
-function getBlogByID(int $id){
-    $movies = getData()["movies"];
-
-    foreach($movies as $movie){
-        if($movie["id"] == $id){
-            return $movie;
+function addBlogToCategories(int $blogid, array $categories){
+    include "ayar.php";
+ 
+    foreach($categories as $catid){
+        $query = "INSERT INTO blog_category(blog_id, category_id) VALUES (?, ?)";
+        $stmt = mysqli_prepare($connection, $query);
+        mysqli_stmt_bind_param($stmt, 'ii', $blogid, $catid);
+        $result = mysqli_stmt_execute($stmt);
+        
+        if (!$result) {
+            echo "Error: " . mysqli_error($connection) . "\n";
+            return false;
         }
+        
+        mysqli_stmt_close($stmt);
     }
+    return true;
+}
 
-    return null;
+
+
+ function deleteBlog(int $id){
+    include "ayar.php";
+ 
+    $query = "DELETE from blogs WHERE id=$id";
+    $result = mysqli_query($connection,$query);
+    return $result;
+ }
+ 
+ function getBlogByID(int $id){
+     include "ayar.php";
+ 
+     $query = "SELECT * from blogs WHERE id='$id'";
+     $result = mysqli_query($connection,$query);
+     mysqli_close($connection);
+     return $result;
+ 
+ }
+
+ function getCategoryBlogByID(int $id){
+    include "ayar.php";
+ 
+     $query = "SELECT c.id, c.name from blog_category bc inner join categories c on bc.category_id = c.id where bc.blog_id=$id";
+     $result = mysqli_query($connection,$query);
+     mysqli_close($connection);
+     return $result;
+ }
+ function getBlogsCategoryID(int $id){
+    include "ayar.php";
+ 
+     $query = "SELECT * from blog_category bc inner join blogs b on bc.blog_id = b.id where bc.category_id=$id";
+     $result = mysqli_query($connection,$query);
+     mysqli_close($connection);
+     return $result;
+ }
+
+ function getBlogsByKeyword($q){
+    include "ayar.php";
+ 
+     $query = "SELECT * from blogs where title LIKE '%$q%' or description LIKE '%$q%'";
+     $result = mysqli_query($connection,$query);
+     mysqli_close($connection);
+     return $result;
+ }
+
+function getCategories(){
+    include "ayar.php";
+
+    $query = "SELECT * FROM categories";
+    $result = mysqli_query($connection,$query);
+    mysqli_close($connection);
+    return $result;
+}
+
+function createCategory(string $categoryname) {
+    include "ayar.php";
+ 
+     $query = "INSERT INTO categories(name) VALUES (?)";
+     $result = mysqli_prepare($connection,$query);
+ 
+     mysqli_stmt_bind_param($result, 's',$categoryname);
+     mysqli_stmt_execute($result);
+     mysqli_stmt_close($result);
+     mysqli_close($connection);
+ 
+    return $result;
+ }
+
+ function getCategoryByID(int $id){
+    include "ayar.php";
+
+    $query = "SELECT * from categories WHERE id='$id'";
+    $result = mysqli_query($connection,$query);
+    mysqli_close($connection);
+    return $result;
+
+}
+
+function editCategory(int $id,string $categoryname,int $isActive){
+    include "ayar.php";
+ 
+    $query = "UPDATE categories SET name='$categoryname',isActive='$isActive' WHERE id='$id'";
+    $result = mysqli_query($connection,$query);
+    echo mysqli_error($connection);
+    return $result;
+ }
+
+ function deleteCategory(int $id){
+    include "ayar.php";
+ 
+    $query = "DELETE from categories WHERE id=$id";
+    $result = mysqli_query($connection,$query);
+    return $result;
+ }
+
+
+
+function control_input($data){
+    $data = htmlspecialchars($data);
+    $data = stripslashes($data);
+
+    return $data;
 }
 
 function kisaAciklama($aciklama, $limit) {

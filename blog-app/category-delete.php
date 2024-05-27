@@ -4,8 +4,8 @@
 
     $id = $_GET["id"];
 
-   if(deleteBlog($id)){
-       header('Location: admin-blogs.php');
+   if(deleteCategory($id)){
+       header('Location: admin-categories.php');
    }else{
     echo "Silme aşamasında bir hata oldu";
    }

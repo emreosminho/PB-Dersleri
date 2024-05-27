@@ -1,6 +1,19 @@
-<?php  foreach(getData()["movies"] as $id => $film): ?> 
+<?php  
 
-    <?php if($film["is-active"]):?>
+if(isset($_GET["categoryid"])&&is_numeric($_GET["categoryid"])){
+    $result = getBlogsCategoryID($_GET["categoryid"]);
+    
+}else if(isset($_GET["q"])){
+    $result = getBlogsByKeyword($_GET["q"]);
+}
+else{
+    $result = getBlogs();
+}
+?> 
+
+    <?php if(mysqli_num_rows($result) > 0): ?>
+        <?php while($film = mysqli_fetch_assoc($result)):?> 
+    <?php if($film["isActive"]):?>
 
 <div class="card mb-3">
     <div class="row">
@@ -9,20 +22,19 @@
         </div>
         <div class="col-9">
             <div class="card-body">                        
-                <h5 class="card-title"><a href="<?php echo $film["url"]?>"><?php echo $film["title"]?></a></h5>
+                <h5 class="card-title"><a href="blog-details.php?id=<?php echo $film["id"]?>"><?php echo $film["title"]?></a></h5>
                 <p class="card-text"><?php echo kisaAciklama($film['description'],200);?></p>
-                <div>
-                    <?php if($film["comments"] > 0): ?>  
-                        <span class="badge bg-primary me-1"><?php echo $film["comments"]?> yorum</span>
-                    <?php endif; ?>
-                    <?php if($film["likes"] > 0): ?>  
-                    <span class="badge bg-primary me-1"><?php echo $film["likes"]?> beğeni</span>
-                    <?php endif; ?>
-                </div>
+                
             </div>
         
         </div>
     </div>
 </div>
 <?php endif;?>
-<?php endforeach; ?>
+<?php endwhile; ?>
+
+<?php else:?>
+    <div class="alert alert-warning">
+        Kategoriye ait film bulunmamaktadır.
+    </div>
+<?php endif;?>
